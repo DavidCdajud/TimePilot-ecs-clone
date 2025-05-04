@@ -1,0 +1,3 @@
+pylint
+pygame
+esper == 2.5
