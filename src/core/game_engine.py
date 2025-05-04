@@ -107,8 +107,8 @@ class GameEngine:
                 screen_width=screen_w,
                 screen_height=screen_h,
                 min_y=-fh,
-                max_y=screen_h * 0.3,
-                move_threshold=80.0    # ajusta a lo que te parezca natural
+                max_y=screen_h * 0.5,
+                move_threshold= 50.0 
             )
 )
 
