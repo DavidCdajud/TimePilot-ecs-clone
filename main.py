@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-"""Función Main"""
-
 import asyncio
 import sys
 from pathlib import Path
