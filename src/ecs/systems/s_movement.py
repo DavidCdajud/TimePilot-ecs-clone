@@ -1,13 +1,13 @@
-
 import esper
-from src.ecs.components.c_transform import CTransform
-from src.ecs.components.c_velocity import CVelocity
+from ecs.components.transform import Transform
+from ecs.components.velocity import Velocity
 
-def system_movement(world:esper.World, delta_time:float):
-    components = world.get_components(CTransform, CVelocity)
+def sistema_movimiento(world: esper.World, delta_tiempo: float) -> None:
+    """Actualiza la posición según la velocidad."""
+    componentes = world.get_components(Transform, Velocity)
 
-    c_t:CTransform
-    c_v:CVelocity
-    for _, (c_t, c_v) in components:
-        c_t.pos.x += c_v.vel.x * delta_time
-        c_t.pos.y += c_v.vel.y * delta_time
+    for _, (transform, velocity) in componentes:
+        transform.pos = (
+            transform.pos[0] + velocity.vx * delta_tiempo,
+            transform.pos[1] + velocity.vy * delta_tiempo
+        )

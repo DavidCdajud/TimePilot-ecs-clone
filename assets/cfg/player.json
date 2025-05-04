@@ -1,0 +1,10 @@
+{
+    "image": "assets/img/player_sheet.png",
+    "frame_w": 16,
+    "frame_h": 16,
+    "frames": 32,
+    "start_index": 0,
+    "framerate": 12,
+    "spawn": { "x": 112, "y": 128 },
+    "speed": 200
+}
