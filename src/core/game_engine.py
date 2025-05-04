@@ -17,6 +17,8 @@ from ecs.systems.s_cloud_spawner import sistema_spawner_nubes
 # …
 # ── Prefabs ─────────────────────────────────────────────────────
 from create.prefabs_creator import create_player_plane, create_cloud
+from src.ecs.systems.s_player_rotation import sistema_player_rotation
+from src.ecs.systems.s_player_shoot import sistema_player_shoot
 
 
 # ────────────────────────────────────────────────────────────────
@@ -49,6 +51,10 @@ class GameEngine:
         # Instancias
         self.mundo: esper.World | None = None
         self.player_ent: int | None = None
+        
+        #Bullet
+        with open("assets/cfg/bullet.json", encoding="utf-8") as f:
+            self.bullet_cfg = json.load(f)
 
     # ╭────────────────── Loop principal ───────────────────╮
     def run(self) -> None:
@@ -130,19 +136,25 @@ class GameEngine:
         if self.is_paused:
             return
 
-        # 0) Spawner de nubes basado en movimiento — pasamos camera_pos, no delta
-        player_tr = self.mundo.component_for_entity(self.player_ent, Transform)
-        camera_pos = (player_tr.pos[0], player_tr.pos[1])
-        sistema_spawner_nubes(self.mundo, camera_pos)
+        # Cámara y centro de la pantalla
+        tr = self.mundo.component_for_entity(self.player_ent, Transform)
+        camera_pos = (tr.pos[0], tr.pos[1])
 
-        # 1) Leer input y actualizar velocidades
+        # 0) Disparo
+        sistema_player_shoot(self.mundo, self.bullet_cfg, camera_pos, self.screen_center)
+
+        # 1) Input → Velocity
         sistema_input_player(self.mundo, self.delta)
 
-        # 2) Movimiento según Velocity
+        # 2) Movimiento
         sistema_movimiento(self.mundo, self.delta)
 
-        # 3) Animaciones (avión + nubes)
+        # 3) Rotación de la nave
+        sistema_player_rotation(self.mundo)
+
+        # 4) Animación de nubes / otras
         sistema_animacion(self.mundo, self.delta)
+
 
 
 
