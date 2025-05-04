@@ -9,9 +9,15 @@ from ecs.components.transform import Transform
 from ecs.systems.s_movement import sistema_movimiento
 from ecs.systems.s_rendering import sistema_rendering
 from ecs.systems.s_animation import sistema_animacion
+from ecs.systems.s_input_player import sistema_input_player
+from ecs.components.cloud_spawner import CloudSpawner
+from ecs.systems.s_cloud_spawner import sistema_spawner_nubes
+
+
 # …
 # ── Prefabs ─────────────────────────────────────────────────────
 from create.prefabs_creator import create_player_plane, create_cloud
+
 
 # ────────────────────────────────────────────────────────────────
 class GameEngine:
@@ -25,6 +31,7 @@ class GameEngine:
         w, h = self.window_cfg["size"]["w"], self.window_cfg["size"]["h"]
         pygame.display.set_caption(self.window_cfg.get("title", "SPACE AVIATOR"))
         self.pantalla = pygame.display.set_mode((w, h))
+        self.screen_center = (w // 2, h // 2)
 
         # Fondo
         bg = self.window_cfg["bg_color"]
@@ -60,19 +67,53 @@ class GameEngine:
 
     # ───────────────── Prefabs iniciales ──────────────────
     def _crear_prefabs(self) -> None:
-        # 1) Nave del jugador
+        """
+        Crea los prefabs iniciales:
+        1) Jugador
+        2) Horizon de nubes (fila continua abajo)
+        3) Spawner dinámico de nubes (arriba, aleatorias)
+        """
+        # ───── 1) Nave del jugador ─────────────────────────────────
         with open("assets/cfg/player.json", encoding="utf-8") as f:
             player_cfg = json.load(f)
         self.player_ent = create_player_plane(self.mundo, player_cfg)
 
-        # 2) Nubes (parallax simple)
+        # ───── 2) Horizon de nubes ────────────────────────────────
         with open("assets/cfg/clouds.json", encoding="utf-8") as f:
             clouds_cfg = json.load(f)
 
-        for cloud_cfg in clouds_cfg:
-            create_cloud(self.mundo, cloud_cfg)
+        large_cfg = next(c for c in clouds_cfg if "large" in c["image"])
+        fw = large_cfg["frame_w"]
+        fh = large_cfg["frame_h"]
+        screen_w = self.window_cfg["size"]["w"]
+        screen_h = self.window_cfg["size"]["h"]
+        horizon_y = screen_h - fh // 2
 
+        n_tiles = (screen_w // fw) + 2
+        for i in range(n_tiles):
+            spawn_cfg = large_cfg.copy()
+            spawn_cfg["spawn"] = {
+                "x": i * fw - fw // 2,
+                "y": horizon_y
+            }
+            create_cloud(self.mundo, spawn_cfg)
 
+        # ───── 3) Spawner dinámico de nubes ────────────────────────
+        from ecs.components.cloud_spawner import CloudSpawner
+
+        spawner_ent = self.mundo.create_entity()
+        self.mundo.add_component(
+            spawner_ent,
+            CloudSpawner(
+                configs=clouds_cfg,
+                screen_width=screen_w,
+                min_y=-fh,                  # justo fuera de la parte superior
+                max_y=screen_h * 0.3,       # hasta el 30% del alto
+                min_interval=0.3,           # entre 0.3s y
+                max_interval=1.0,           # 1.0s para spawn aleatorio
+                initial_count=8             # semillas iniciales de nubes
+            )
+        )
 
 
     # ────────────────────── Ciclo frame ───────────────────
@@ -91,14 +132,33 @@ class GameEngine:
     def _actualizar(self) -> None:
         if self.is_paused:
             return
+
+        # 0) Spawner de nubes
+        sistema_spawner_nubes(self.mundo, self.delta)
+
+
+        # 1) Leer input y actualizar velocidades
+        sistema_input_player(self.mundo, self.delta)
+
+        # 2) Movimiento según Velocity
         sistema_movimiento(self.mundo, self.delta)
+
+        # 3) Animaciones (avión + nubes)
         sistema_animacion(self.mundo, self.delta)
 
 
+
+
     def _dibujar(self) -> None:
+        # calcula cámara: sigue la posición world del jugador
+        player_tr = self.mundo.component_for_entity(self.player_ent, Transform)
+        camera_offset = player_tr.pos
+
         self.pantalla.fill(self.color_fondo)
-        sistema_rendering(self.mundo, self.pantalla)
+        # pasa offset y centro a la función de render
+        sistema_rendering(self.mundo, self.pantalla, camera_offset, self.screen_center)
         pygame.display.flip()
+
 
     def _limpiar(self) -> None:
         self.mundo.clear_database()

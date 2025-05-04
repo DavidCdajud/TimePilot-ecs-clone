@@ -10,6 +10,10 @@ from ecs.components.velocity import Velocity
 from ecs.components.sprite import Sprite
 from ecs.components.animation import Animation
 from core.service_locator import ServiceLocator
+from ecs.components.player_input import PlayerInput
+from src.ecs.components.tags.c_tag_cloud import CTagCloud
+
+
 
 def _slice_sheet(
     sheet: pygame.Surface,
@@ -20,7 +24,7 @@ def _slice_sheet(
     """
     Rota por columnas y filas, extrayendo como máximo num_frames
     o (cols * rows) si num_frames es None.
-    Imprime un DEBUG con tamaños para ayudarte a ajustar el JSON.
+    Imprime un DEBUG con tamaños para ajustar el JSON.
     """
     sw, sh = sheet.get_size()
     print(f"[DEBUG] sheet_size=({sw},{sh}), frame=({frame_w},{frame_h}), num_frames={num_frames}")
@@ -74,6 +78,10 @@ def create_player_plane(world: esper.World, cfg: dict) -> int:
     world.add_component(ent, Velocity(0.0, 0.0))
     first = frames[start]
     world.add_component(ent, Sprite(first, _center_offset(first)))
+
+     # Componente de input: velocidad
+    world.add_component(ent, PlayerInput(cfg["speed"]))
+
     if len(frames) > 1:
         world.add_component(ent, Animation(frames, framerate=fr))
     return ent
@@ -111,8 +119,8 @@ def create_cloud(
 
     ent = world.create_entity()
     world.add_component(ent, Transform((cfg["spawn"]["x"], cfg["spawn"]["y"])))
-    world.add_component(ent, Velocity(0.0, cfg["speed"]))
-    world.add_component(ent, Sprite(surf, offset))
+    world.add_component(ent, Sprite(surf, _center_offset(surf)))
+    world.add_component(ent, CTagCloud())
 
     # Solo si hay más de un frame, añade animación
     if len(frames) > 1:
