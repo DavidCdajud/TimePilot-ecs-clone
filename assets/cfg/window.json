@@ -1,0 +1,13 @@
+{
+    "title": "SPACE AVIATOR",
+    "size": {
+        "w": 224,
+        "h": 256
+    },
+    "bg_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+    },
+    "framerate": 60
+}
