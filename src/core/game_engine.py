@@ -99,21 +99,18 @@ class GameEngine:
             create_cloud(self.mundo, spawn_cfg)
 
         # ───── 3) Spawner dinámico de nubes ────────────────────────
-        from ecs.components.cloud_spawner import CloudSpawner
-
         spawner_ent = self.mundo.create_entity()
         self.mundo.add_component(
             spawner_ent,
             CloudSpawner(
                 configs=clouds_cfg,
                 screen_width=screen_w,
-                min_y=-fh,                  # justo fuera de la parte superior
-                max_y=screen_h * 0.3,       # hasta el 30% del alto
-                min_interval=0.3,           # entre 0.3s y
-                max_interval=1.0,           # 1.0s para spawn aleatorio
-                initial_count=8             # semillas iniciales de nubes
+                screen_height=screen_h,
+                min_y=-fh,
+                max_y=screen_h * 0.3,
+                move_threshold=80.0    # ajusta a lo que te parezca natural
             )
-        )
+)
 
 
     # ────────────────────── Ciclo frame ───────────────────
@@ -133,9 +130,10 @@ class GameEngine:
         if self.is_paused:
             return
 
-        # 0) Spawner de nubes
-        sistema_spawner_nubes(self.mundo, self.delta)
-
+        # 0) Spawner de nubes basado en movimiento — pasamos camera_pos, no delta
+        player_tr = self.mundo.component_for_entity(self.player_ent, Transform)
+        camera_pos = (player_tr.pos[0], player_tr.pos[1])
+        sistema_spawner_nubes(self.mundo, camera_pos)
 
         # 1) Leer input y actualizar velocidades
         sistema_input_player(self.mundo, self.delta)
@@ -145,7 +143,6 @@ class GameEngine:
 
         # 3) Animaciones (avión + nubes)
         sistema_animacion(self.mundo, self.delta)
-
 
 
 
