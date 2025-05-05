@@ -1,3 +1,4 @@
+# src/core/game_engine.py  (o donde lo tengas)
 import json
 import pathlib
 import pygame
@@ -13,15 +14,20 @@ from ecs.systems.s_input_player import sistema_input_player
 from ecs.components.cloud_spawner import CloudSpawner
 from ecs.systems.s_cloud_spawner import sistema_spawner_nubes
 
-
-# …
 # ── Prefabs ─────────────────────────────────────────────────────
-from create.prefabs_creator import create_player_plane, create_cloud
-from src.ecs.systems.s_player_rotation import sistema_player_rotation
-from src.ecs.systems.s_player_shoot import sistema_player_shoot
+from create.prefabs_creator import (
+    create_enemy_plane,
+    create_player_plane,
+    create_cloud,
+)
+from ecs.components.c_enemy_spawner import CEnemySpawner
+from ecs.systems.s_player_rotation import sistema_player_rotation
+from ecs.systems.s_player_shoot import sistema_player_shoot
+
+# ── States ──────────────────────────────────────────────────────
+from core.states.menu_state import MenuState
 
 
-# ────────────────────────────────────────────────────────────────
 class GameEngine:
     """Bucle principal – TimePilot ECS."""
 
@@ -30,8 +36,10 @@ class GameEngine:
         pygame.init()
 
         # Ventana
-        w, h = self.window_cfg["size"]["w"], self.window_cfg["size"]["h"]
-        pygame.display.set_caption(self.window_cfg.get("title", "SPACE AVIATOR"))
+        w = self.window_cfg["size"]["w"]
+        h = self.window_cfg["size"]["h"]
+        title = self.window_cfg.get("title", "SPACE AVIATOR")
+        pygame.display.set_caption(title)
         self.pantalla = pygame.display.set_mode((w, h))
         self.screen_center = (w // 2, h // 2)
 
@@ -56,19 +64,25 @@ class GameEngine:
         with open("assets/cfg/bullet.json", encoding="utf-8") as f:
             self.bullet_cfg = json.load(f)
 
+        #States
+        self.state = MenuState(self)
     # ╭────────────────── Loop principal ───────────────────╮
     def run(self) -> None:
-        self.mundo = esper.World()
-        self._crear_prefabs()
-
         self.activo = True
         while self.activo:
-            self._calcular_tiempo()
-            self._procesar_eventos()
-            self._actualizar()
-            self._dibujar()
+            # recálculo de delta
+            dt = self.reloj.tick(self.fps) / 1000.0
 
-        self._limpiar()
+            # +ADDED: delegar eventos al estado
+            self.state.handle_events()                         # +ADDED
+            self.state.update(dt)                               # +ADDED
+            self.state.render()                                 # +ADDED
+            # +ADDED─────────────────────────────────────────────────
+
+        # limpieza final
+        if self.mundo:
+            self.mundo.clear_database()
+        pygame.quit()
     # ╰──────────────────────────────────────────────────────╯
 
     # ───────────────── Prefabs iniciales ──────────────────
@@ -78,6 +92,8 @@ class GameEngine:
         1) Jugador
         2) Horizon de nubes (fila continua abajo)
         3) Spawner dinámico de nubes (arriba, aleatorias)
+        4) Spawner de enemigos (con intervalo reducido para pruebas)
+        5) Enemigo de prueba inmediato
         """
         # ───── 1) Nave del jugador ─────────────────────────────────
         with open("assets/cfg/player.json", encoding="utf-8") as f:
@@ -114,11 +130,30 @@ class GameEngine:
                 screen_height=screen_h,
                 min_y=-fh,
                 max_y=screen_h * 0.5,
-                move_threshold= 50.0 
+                move_threshold=50.0
             )
-)
+        )
 
+        # ───── 4) Spawner de enemigos (intervalo bajo para testing) ──
+        with open("assets/cfg/enemies.json", encoding="utf-8") as f:
+            enemies_cfg = json.load(f)
 
+        enemy_spawner_ent = self.mundo.create_entity()
+        self.mundo.add_component(
+            enemy_spawner_ent,
+            CEnemySpawner(
+                configs=enemies_cfg,
+                interval=0.5,                             # intervalo corto para pruebas
+                screen_width=screen_w
+            )
+        )
+
+        # ───── 5) Enemigo de prueba inmediato ───────────────────────
+        # Clona el primer tipo de enemigo y fuerza spawn al inicio.
+        test_cfg = enemies_cfg[0].copy()
+        test_cfg["spawn"] = {"x": screen_w * 0.5, "y": -test_cfg.get("frame_h", 16) / 2}
+        create_enemy_plane(self.mundo, test_cfg)
+        
     # ────────────────────── Ciclo frame ───────────────────
     def _calcular_tiempo(self) -> None:
         self.reloj.tick(self.fps)
@@ -130,8 +165,6 @@ class GameEngine:
                 self.activo = False
             # aquí pondremos sistemas de input más adelante
 
-
-
     def _actualizar(self) -> None:
         if self.is_paused:
             return
@@ -142,6 +175,9 @@ class GameEngine:
 
         # 0) Disparo
         sistema_player_shoot(self.mundo, self.bullet_cfg, camera_pos, self.screen_center)
+        
+        # Enemigos
+        sistema_input_player(self.mundo, self.delta)
 
         # 1) Input → Velocity
         sistema_input_player(self.mundo, self.delta)
