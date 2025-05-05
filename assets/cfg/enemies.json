@@ -4,7 +4,7 @@
     "image": "assets/img/enemy_01.png",
     "frame_w": 16,
     "frame_h": 16,
-    "frames": 4,
+    "frames": 32,
     "framerate": 8,
     "vel_min": 20,
     "vel_max": 40,
@@ -17,36 +17,38 @@
     "image": "assets/img/enemy_02.png",
     "frame_w": 16,
     "frame_h": 16,
-    "frames": 4,
-    "framerate": 10,
-    "vel_min": 30,
-    "vel_max": 60,
+    "frames": 32,
+    "framerate": 8,
+    "vel_min": 20,
+    "vel_max": 40,
     "health": 1,
-    "mode": "animation"             
+    "mode": "orientation",
+    "orientation_frames": 10       
   },
   {
     "type": "bomber",
     "image": "assets/img/enemy_03.png",
-    "frame_w": 32,
+    "frame_w": 16,
     "frame_h": 16,
-    "frames": 4,
+    "frames": 32,
     "framerate": 6,
     "vel_min": 15,
     "vel_max": 25,
     "health": 2,
-    "mode": "animation"
+    "mode": "orientation",
+    "orientation_frames": 10
   },
   {
     "type": "ufo",
     "image": "assets/img/enemy_04.png",
-    "frame_w": 24,
-    "frame_h": 24,
-    "frames": 6,
+    "frame_w": 16,
+    "frame_h": 16,
+    "frames": 32,
     "framerate": 12,
     "vel_min": 40,
     "vel_max": 80,
     "health": 3,
     "mode": "orientation",
-    "orientation_frames": 16
+    "orientation_frames": 10
   }
 ]
