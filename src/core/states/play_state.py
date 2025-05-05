@@ -13,6 +13,8 @@ from ecs.systems.s_player_rotation import sistema_player_rotation
 from ecs.systems.s_animation import sistema_animacion
 from ecs.systems.s_rendering import sistema_rendering
 from ecs.systems.s_enemy_ai import sistema_enemy_ai
+from src.ecs.systems.s_enemy_orientation import sistema_enemy_orientation
+from src.ecs.systems.s_enemy_rotation import sistema_enemy_rotation
 
 class PlayState:
     def __init__(self, engine):
@@ -53,25 +55,27 @@ class PlayState:
             # Puedes añadir pausa, etc.
 
     def update(self, dt: float):
-        """Actualiza lógica de juego: spawn, input, movimiento, animación."""
         world = self.engine.mundo
-        
-        # 0) IA de enemigos (actualiza velocities hacia jugador)
 
-        
         # 1) Spawn de enemigos
         sistema_enemy_spawn(world, dt)
-        sistema_enemy_ai(self.engine.mundo, dt)
-        # 2) Input del jugador → Velocity + disparo
+
+        # 2) IA de enemigos → actualiza velocities para perseguir
+        sistema_enemy_ai(world, dt)
+
+        # 3) Orientación de enemigos → elige sprite según vx,vy
+        sistema_enemy_orientation(world)
+
+        # 4) Input del jugador → Velocity + disparo
         sistema_input_player(world, dt)
 
-        # 3) Movimiento global
+        # 5) Movimiento global de todas las entidades
         sistema_movimiento(world, dt)
 
-        # 4) Rotación de la nave
+        # 6) Rotación de la nave del jugador
         sistema_player_rotation(world)
 
-        # 5) Animaciones
+        # 7) Animaciones (nubes, explosiones, etc.)
         sistema_animacion(world, dt)
 
     def render(self):
