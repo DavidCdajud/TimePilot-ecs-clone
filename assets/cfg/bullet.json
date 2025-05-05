@@ -1,0 +1,11 @@
+{
+    "image": "assets/img/bullet_01_02_03.png",
+    "speed": 400,
+    "frame_w": 8,
+    "frame_h": 8,
+    "frames": 1,
+    "framerate": 12,
+    "damage": 1,
+    "fire_cooldown": 0.2
+  }
+  
