@@ -18,6 +18,7 @@ from ecs.components.enemy_ai import EnemyAI
 from ecs.components.tags.c_tag_bullet import CTagBullet
 from ecs.components.tags.c_tag_enemy import CTagEnemy
 from ecs.components.tags.c_tag_player import CTagPlayer
+from ecs.components.orientation import Orientation 
 
 # … resto de funciones …
 
@@ -168,63 +169,46 @@ def create_bullet(
 
     return ent
 
-
 def create_enemy_plane(world: esper.World, cfg: dict) -> int:
-
-    print(f"[DEBUG create_enemy] cfg spawn=({cfg.get('spawn')})")
-    """
-    Crea un enemigo con:
-      - Transform, Velocity
-      - Sprite (+ Animation)
-      - CTagEnemy, EnemyAI (opcional Health)
-    cfg viene de enemies.json y debe incluir:
-      - image, frame_w, frame_h, vel_min, vel_max
-      - spawn: {x, y} (inyectado por el spawner)
-    """
-    # Carga de la hoja de sprites
     sheet = ServiceLocator.images_service.get(cfg["image"])
-
-    # 1) Extraer frames o fallback
     fw = cfg.get("frame_w", sheet.get_width())
     fh = cfg.get("frame_h", sheet.get_height())
-    frames = _slice_sheet(sheet, fw, fh, cfg.get("frames"))
-    if not frames:
-        frames = [sheet]
+    base_frames = _slice_sheet(sheet, fw, fh, cfg.get("frames")) or [sheet]
+    start = cfg.get("start_index", 0) % len(base_frames)
 
-    # 2) Validar índice de inicio
-    start = cfg.get("start_index", 0)
-    if start < 0 or start >= len(frames):
-        start = 0
-
-    # 3) Velocidad aleatoria
+    # velocidad aleatoria
     vmin, vmax = cfg.get("vel_min", 10), cfg.get("vel_max", 20)
-    vx = random.uniform(vmin, vmax) * random.choice([-1, 1])
-    vy = random.uniform(vmin, vmax) * random.choice([-1, 1])
+    vx = random.uniform(vmin, vmax) * random.choice([-1,1])
+    vy = random.uniform(vmin, vmax) * random.choice([-1,1])
 
-    # 4) Leer posición de spawn
-    spawn = cfg.get("spawn", {"x": 0, "y": 0})
-    x0, y0 = spawn["x"], spawn["y"]
+    # posición de spawn
+    sx, sy = cfg.get("spawn", {"x":0,"y":0}).values()
 
-    # 5) Crear entidad y componentes básicos
     ent = world.create_entity()
-    world.add_component(ent, Transform((x0, y0)))
+    world.add_component(ent, Transform((sx, sy)))
     world.add_component(ent, Velocity(vx, vy))
 
-    # 6) Sprite y animación
-    frame = frames[start]
-    offset = _center_offset(frame)
-    world.add_component(ent, Sprite(frame, offset, layer=2))
-    if len(frames) > 1:
-        fr_rate = cfg.get("framerate", 8)
-        world.add_component(ent, Animation(frames, fr_rate))
+    offset = _center_offset(base_frames[start])
+    mode = cfg.get("mode", "animation")
 
-    # 7) Lógica de enemigo
+    if mode == "animation":
+        # simple ciclo
+        world.add_component(ent, Sprite(base_frames[start], offset, layer=2))
+        if len(base_frames) > 1:
+            world.add_component(ent, Animation(base_frames, cfg.get("framerate",8)))
+
+    elif mode == "orientation":
+        # frames de orientación: re-sliceamos solo los primeros N
+        nori = cfg.get("orientation_frames", len(base_frames))
+        ori_frames = _slice_sheet(sheet, fw, fh, nori) or [sheet]
+        neutral = cfg.get("start_index", 0) % len(ori_frames)
+        world.add_component(ent, Sprite(ori_frames[neutral], offset, layer=2))
+        world.add_component(ent, Orientation(frames=ori_frames, neutral_index=neutral))
+
+    else:
+        # fallback estático
+        world.add_component(ent, Sprite(base_frames[start], offset, layer=2))
+
     world.add_component(ent, CTagEnemy())
-    world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed", 50.0)))
-    components = [type(comp).__name__ for comp in world.components_for_entity(ent)]
-    print(f"[DEBUG create_enemy] entidad={ent} components={components}")
-    # (Opcional) Salud
-    # from src.ecs.components.health import Health
-    # world.add_component(ent, Health(cfg.get("health", 1)))
-
+    world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed",50.0)))
     return ent
