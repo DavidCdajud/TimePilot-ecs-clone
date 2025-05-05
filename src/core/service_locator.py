@@ -1,5 +1,6 @@
 from services.images_service import ImagesService
+from services.texts_service import TextService
 
 class ServiceLocator:
-    images = ImagesService()
-    # más adelante: sounds, config, textos, etc.
+    images_service = ImagesService()
+    texts_service = TextService()
