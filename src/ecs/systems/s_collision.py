@@ -55,3 +55,4 @@ def sistema_colisiones_balas_enemigos(world: esper.World) -> None:
                 sb.score += PUNTOS_POR_ENEMIGO
 
             break  # salto al siguiente proyectil (la bala ya no existe)
+
