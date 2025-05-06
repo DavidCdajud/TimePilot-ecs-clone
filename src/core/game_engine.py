@@ -69,17 +69,17 @@ class GameEngine:
         self.state = MenuState(self)
         
     # ╭────────────────── Loop principal ───────────────────╮
+
     def run(self) -> None:
         self.activo = True
         while self.activo:
             # recálculo de delta
             dt = self.reloj.tick(self.fps) / 1000.0
 
-            # +ADDED: delegar eventos al estado
-            self.state.handle_events()                         # +ADDED
-            self.state.update(dt)                               # +ADDED
-            self.state.render()                                 # +ADDED
-            # +ADDED─────────────────────────────────────────────────
+
+            self.state.handle_events()                         
+            self.state.update(dt)                               
+            self.state.render()                                 
 
         # limpieza final
         if self.mundo:
