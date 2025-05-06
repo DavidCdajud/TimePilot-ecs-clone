@@ -26,6 +26,7 @@ from ecs.systems.s_player_shoot import sistema_player_shoot
 
 # ── States ──────────────────────────────────────────────────────
 from core.states.menu_state import MenuState
+from ecs.components.score_board import ScoreBoard
 
 
 class GameEngine:
@@ -66,6 +67,7 @@ class GameEngine:
 
         #States
         self.state = MenuState(self)
+        
     # ╭────────────────── Loop principal ───────────────────╮
     def run(self) -> None:
         self.activo = True
@@ -154,6 +156,11 @@ class GameEngine:
         test_cfg["spawn"] = {"x": screen_w * 0.5, "y": -test_cfg.get("frame_h", 16) / 2}
         create_enemy_plane(self.mundo, test_cfg)
         
+        score_ent = self.mundo.create_entity()
+        self.mundo.add_component(score_ent, ScoreBoard())
+        self.score_ent = score_ent     
+
+
     # ────────────────────── Ciclo frame ───────────────────
     def _calcular_tiempo(self) -> None:
         self.reloj.tick(self.fps)
@@ -190,9 +197,6 @@ class GameEngine:
 
         # 4) Animación de nubes / otras
         sistema_animacion(self.mundo, self.delta)
-
-
-
 
     def _dibujar(self) -> None:
         # calcula cámara: sigue la posición world del jugador
