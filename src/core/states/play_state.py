@@ -16,6 +16,8 @@ from ecs.systems.s_enemy_ai import sistema_enemy_ai
 from ecs.systems.s_collision import sistema_colisiones_balas_enemigos
 from ecs.systems.s_enemy_orientation import sistema_enemy_orientation
 from ecs.systems.s_expiration import sistema_expiracion
+from ecs.systems.s_score_render import sistema_score_render
+
 
 class PlayState:
     def __init__(self, engine):
@@ -97,4 +99,5 @@ class PlayState:
 
         self.screen.fill(self.engine.color_fondo)
         sistema_rendering(world, self.screen, camera_offset, center)
+        sistema_score_render(world, self.screen)
         pygame.display.flip()
