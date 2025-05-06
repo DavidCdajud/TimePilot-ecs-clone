@@ -7,3 +7,4 @@ def sistema_expiracion(world: esper.World, delta: float) -> None:
         dur.time_left -= delta
         if dur.time_left <= 0:
             world.delete_entity(ent, immediate=True)   # ← borra YA
+

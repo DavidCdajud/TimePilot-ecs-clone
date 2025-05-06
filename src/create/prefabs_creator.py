@@ -16,14 +16,18 @@ from ecs.components.player_orientation import PlayerOrientation
 from ecs.components.tags.c_tag_cloud import CTagCloud
 from ecs.components.bullet import Bullet
 from ecs.components.enemy_ai import EnemyAI
+
 from ecs.components.tags.c_tag_bullet import CTagBullet
 from ecs.components.tags.c_tag_enemy import CTagEnemy
 from ecs.components.tags.c_tag_player import CTagPlayer
+
 from ecs.components.orientation import Orientation
 from ecs.components.enemy_orientation import EnemyOrientation
+
 from ecs.components.health import Health
 from ecs.components.duration import Duration
 from ecs.components.score_popup import ScorePopup
+
 
 
 
@@ -163,7 +167,6 @@ def create_bullet(
     world.add_component(ent, Bullet(owner=None, damage=cfg.get("damage", 1)))
     # Animación si procede
     world.add_component(ent, Duration(1.0))
-
     if len(frames) > 1:
         world.add_component(ent, Animation(frames, framerate=frate))
     return ent
