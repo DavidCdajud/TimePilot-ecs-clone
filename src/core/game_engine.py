@@ -26,6 +26,7 @@ from ecs.systems.s_player_shoot import sistema_player_shoot
 
 # ── States ──────────────────────────────────────────────────────
 from core.states.menu_state import MenuState
+from ecs.components.score_board import ScoreBoard
 
 
 class GameEngine:
@@ -72,12 +73,8 @@ class GameEngine:
         while self.activo:
             # recálculo de delta
             dt = self.reloj.tick(self.fps) / 1000.0
-
-            # +ADDED: delegar eventos al estado
-            self.state.handle_events()                         # +ADDED
-            self.state.update(dt)                               # +ADDED
-            self.state.render()                                 # +ADDED
-            # +ADDED─────────────────────────────────────────────────
+            self.state.update(dt)                          
+            self.state.render()                            
 
         # limpieza final
         if self.mundo:
@@ -154,6 +151,11 @@ class GameEngine:
         test_cfg["spawn"] = {"x": screen_w * 0.5, "y": -test_cfg.get("frame_h", 16) / 2}
         create_enemy_plane(self.mundo, test_cfg)
         
+        score_ent = self.mundo.create_entity()
+        self.mundo.add_component(score_ent, ScoreBoard())
+        self.score_ent = score_ent     
+
+
     # ────────────────────── Ciclo frame ───────────────────
     def _calcular_tiempo(self) -> None:
         self.reloj.tick(self.fps)

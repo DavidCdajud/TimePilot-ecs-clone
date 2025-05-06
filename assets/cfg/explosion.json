@@ -1,0 +1,9 @@
+{
+    "image": "assets/img/explosion_middle_enemies.png",
+    "frame_w": 16,
+    "frame_h": 16,
+    "frames": 6,
+    "framerate": 16,
+    "mode": "animate"
+  }
+  
