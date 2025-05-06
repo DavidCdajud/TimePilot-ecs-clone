@@ -1,9 +1,9 @@
 # src/create/prefabs_creator.py
 import random
 from typing import List, Optional, Tuple
-
-import esper
 import pygame
+import esper
+
 
 from ecs.components.transform import Transform
 from ecs.components.velocity import Velocity
@@ -19,7 +19,11 @@ from ecs.components.tags.c_tag_bullet import CTagBullet
 from ecs.components.tags.c_tag_enemy import CTagEnemy
 from ecs.components.tags.c_tag_player import CTagPlayer
 from ecs.components.orientation import Orientation
-from src.ecs.components.enemy_orientation import EnemyOrientation 
+from ecs.components.enemy_orientation import EnemyOrientation
+from ecs.components.health import Health
+from ecs.components.duration import Duration
+from ecs.components.score_popup import ScorePopup
+
 
 # … resto de funciones …
 
@@ -155,9 +159,10 @@ def create_bullet(
     world.add_component(ent, CTagBullet())
     world.add_component(ent, Bullet(owner=None, damage=cfg.get("damage", 1)))
     # Animación si procede
+    world.add_component(ent, Duration(0.2))
+
     if len(frames) > 1:
         world.add_component(ent, Animation(frames, framerate=frate))
-
     return ent
 
 def create_enemy_plane(world: esper.World, cfg: dict) -> int:
@@ -207,5 +212,39 @@ def create_enemy_plane(world: esper.World, cfg: dict) -> int:
     # 7) Lógica de juego
     world.add_component(ent, CTagEnemy())
     world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed", 50.0)))
+    world.add_component(ent, Health(cfg.get("health", 1)))
 
+    # comps = [type(c).__name__ for c in world.components_for_entity(ent)]
+    # print(f"[DEBUG create_enemy_plane] ent={ent} → {comps}")
+    
+    return ent
+
+def create_explosion(world: esper.World, cfg: dict, pos: tuple[float, float]) -> int:
+    sheet = ServiceLocator.images_service.get(cfg["image"])
+    fw, fh   = cfg["frame_w"], cfg["frame_h"]
+    num      = cfg["frames"]
+    fr_rate  = cfg["framerate"]
+    frames   = _slice_sheet(sheet, fw, fh, num) or [sheet]
+
+    ent = world.create_entity()
+
+    world.add_component(ent, Transform((pos[0], pos[1])))
+
+    offset = (frames[0].get_width()//2, frames[0].get_height()//2)
+    world.add_component(ent, Sprite(frames[0], offset))
+    world.add_component(ent, Animation(frames, fr_rate))
+
+    total_time = 1.0
+    world.add_component(ent, Duration(total_time))
+    return ent
+
+def create_score_popup(world: esper.World, value: int, pos: tuple[float, float]) -> int:
+    font = pygame.font.Font(None, 24)
+    surf = font.render(str(value), True, (255, 255, 0))
+    ent = world.create_entity()
+    world.add_component(ent, Transform(pos))
+    world.add_component(ent, Sprite(surf, (surf.get_width()//2, surf.get_height()//2), layer=4))
+    world.add_component(ent, Velocity(0, -40))
+    world.add_component(ent, Duration(1.0))
+    world.add_component(ent, ScorePopup(value))
     return ent

@@ -10,7 +10,8 @@
     "vel_max": 40,
     "mode": "orientation",          
     "orientation_frames": 8,         
-    "spawn": { "x": 100, "y": -16 }
+    "spawn": { "x": 100, "y": -16 },
+    "health": 1
   },
   {
     "type": "fighter",
@@ -23,7 +24,7 @@
     "vel_max": 40,
     "health": 1,
     "mode": "orientation",
-    "orientation_frames": 10       
+    "orientation_frames": 10
   },
   {
     "type": "bomber",

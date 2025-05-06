@@ -13,8 +13,10 @@ from ecs.systems.s_player_rotation import sistema_player_rotation
 from ecs.systems.s_animation import sistema_animacion
 from ecs.systems.s_rendering import sistema_rendering
 from ecs.systems.s_enemy_ai import sistema_enemy_ai
-from src.ecs.systems.s_enemy_orientation import sistema_enemy_orientation
-from src.ecs.systems.s_enemy_rotation import sistema_enemy_rotation
+from ecs.systems.s_collision import sistema_colisiones_balas_enemigos
+from ecs.systems.s_enemy_orientation import sistema_enemy_orientation
+from ecs.systems.s_expiration import sistema_expiracion
+from ecs.systems.s_score_render import sistema_score_render
 
 class PlayState:
     def __init__(self, engine):
@@ -23,6 +25,7 @@ class PlayState:
 
     def enter(self):
         """Se llama al iniciar la partida desde el menú."""
+        
         # 1) Crear y asignar el mundo ECS
         self.engine.mundo = esper.World()
 
@@ -78,6 +81,14 @@ class PlayState:
         # 7) Animaciones (nubes, explosiones, etc.)
         sistema_animacion(world, dt)
 
+        # 8) Colisiones (balas-enemigos, etc.)
+        sistema_colisiones_balas_enemigos(world)
+
+        # 9) Expiración de entidades (balas, explosiones, etc.)
+        sistema_expiracion(world, dt)
+
+
+
     def render(self):
         """Dibuja el frame con cámara centrada en el jugador."""
         world = self.engine.mundo
@@ -87,4 +98,5 @@ class PlayState:
 
         self.screen.fill(self.engine.color_fondo)
         sistema_rendering(world, self.screen, camera_offset, center)
+        sistema_score_render(world, self.screen)
         pygame.display.flip()

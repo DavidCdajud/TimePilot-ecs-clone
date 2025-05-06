@@ -9,7 +9,8 @@ from ecs.components.transform import Transform
 from ecs.components.sprite import Sprite
 from create.prefabs_creator import create_cloud
 from core.service_locator import ServiceLocator
-from src.ecs.components.tags.c_tag_cloud import CTagCloud
+from ecs.components.tags.c_tag_cloud import CTagCloud
+
 
 def sistema_spawner_nubes(
     world: esper.World,
