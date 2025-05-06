@@ -18,7 +18,6 @@ from ecs.systems.s_enemy_orientation import sistema_enemy_orientation
 from ecs.systems.s_expiration import sistema_expiracion
 from ecs.systems.s_score_render import sistema_score_render
 
-
 class PlayState:
     def __init__(self, engine):
         self.engine = engine
