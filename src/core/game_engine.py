@@ -198,9 +198,6 @@ class GameEngine:
         # 4) Animación de nubes / otras
         sistema_animacion(self.mundo, self.delta)
 
-
-
-
     def _dibujar(self) -> None:
         # calcula cámara: sigue la posición world del jugador
         player_tr = self.mundo.component_for_entity(self.player_ent, Transform)

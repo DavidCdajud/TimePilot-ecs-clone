@@ -3,6 +3,7 @@ import random
 from typing import List, Optional, Tuple
 import pygame
 import esper
+from typing import Optional
 
 
 from ecs.components.transform import Transform
@@ -25,8 +26,10 @@ from ecs.components.duration import Duration
 from ecs.components.score_popup import ScorePopup
 
 
-# … resto de funciones …
 
+_POPUP_FONT_PATH = "assets/fnt/PressStart2P.ttf"
+_POPUP_FONT_SIZE = 6
+_popup_font: Optional[pygame.font.Font] = None
 
 def _slice_sheet(sheet: pygame.Surface, frame_w: int, frame_h: int,
                  num_frames: Optional[int] = None) -> List[pygame.Surface]:
@@ -159,7 +162,7 @@ def create_bullet(
     world.add_component(ent, CTagBullet())
     world.add_component(ent, Bullet(owner=None, damage=cfg.get("damage", 1)))
     # Animación si procede
-    world.add_component(ent, Duration(0.2))
+    world.add_component(ent, Duration(1.0))
 
     if len(frames) > 1:
         world.add_component(ent, Animation(frames, framerate=frate))
@@ -220,31 +223,41 @@ def create_enemy_plane(world: esper.World, cfg: dict) -> int:
     return ent
 
 def create_explosion(world: esper.World, cfg: dict, pos: tuple[float, float]) -> int:
-    sheet = ServiceLocator.images_service.get(cfg["image"])
-    fw, fh   = cfg["frame_w"], cfg["frame_h"]
-    num      = cfg["frames"]
-    fr_rate  = cfg["framerate"]
-    frames   = _slice_sheet(sheet, fw, fh, num) or [sheet]
+    sheet  = ServiceLocator.images_service.get(cfg["image"])
+    fw, fh = cfg["frame_w"], cfg["frame_h"]
+    frames = _slice_sheet(sheet, fw, fh, cfg["frames"]) or [sheet]
+    fr     = cfg["framerate"]
 
-    ent = world.create_entity()
-
-    world.add_component(ent, Transform((pos[0], pos[1])))
-
-    offset = (frames[0].get_width()//2, frames[0].get_height()//2)
-    world.add_component(ent, Sprite(frames[0], offset))
-    world.add_component(ent, Animation(frames, fr_rate))
-
-    total_time = 1.0
-    world.add_component(ent, Duration(total_time))
-    return ent
-
-def create_score_popup(world: esper.World, value: int, pos: tuple[float, float]) -> int:
-    font = pygame.font.Font(None, 24)
-    surf = font.render(str(value), True, (255, 255, 0))
     ent = world.create_entity()
     world.add_component(ent, Transform(pos))
-    world.add_component(ent, Sprite(surf, (surf.get_width()//2, surf.get_height()//2), layer=4))
+
+    offset = (frames[0].get_width() // 2, frames[0].get_height() // 2)
+    world.add_component(ent, Sprite(frames[0], offset))
+    world.add_component(ent, Animation(frames, fr, loop=False))   # ← NO se repite
+
+    # la animación dura len(frames)/fr segundos
+    world.add_component(ent, Duration(len(frames) / fr))
+    return ent
+
+def _get_popup_font() -> pygame.font.Font:
+    global _popup_font
+    if _popup_font is None:
+        _popup_font = pygame.font.Font(_POPUP_FONT_PATH, _POPUP_FONT_SIZE)
+    return _popup_font
+
+def create_score_popup(world: esper.World, value: int, pos: tuple[float, float]) -> int:
+    font = _get_popup_font()                                       # ← usa la fuente deseada
+    surf = font.render(str(value), True, (255, 255, 255))
+    ent  = world.create_entity()
+
+    world.add_component(ent, Transform(pos))
+    world.add_component(ent, Sprite(
+        surf,
+        (surf.get_width() // 2, surf.get_height() // 2),
+        layer=4
+    ))
     world.add_component(ent, Velocity(0, -40))
     world.add_component(ent, Duration(1.0))
     world.add_component(ent, ScorePopup(value))
+
     return ent
