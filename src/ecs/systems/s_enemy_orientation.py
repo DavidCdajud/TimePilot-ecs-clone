@@ -3,7 +3,7 @@ import math
 import esper
 from ecs.components.velocity import Velocity
 from ecs.components.sprite import Sprite
-from src.ecs.components.enemy_orientation import EnemyOrientation
+from ecs.components.enemy_orientation import EnemyOrientation
 from ecs.components.tags.c_tag_enemy import CTagEnemy
 
 def sistema_enemy_orientation(world: esper.World) -> None:

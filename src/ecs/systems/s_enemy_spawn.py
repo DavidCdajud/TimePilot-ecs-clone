@@ -22,5 +22,5 @@ def sistema_enemy_spawn(world: esper.World, delta: float):
                 "y": -cfg.get("frame_h", 16) / 2
             }
 
-            print(f"[ENEMY_SPAWN] creando enemigo en x={cfg['spawn']['x']:.1f}")
+            # print(f"[ENEMY_SPAWN] creando enemigo en x={cfg['spawn']['x']:.1f}")
             create_enemy_plane(world, cfg)

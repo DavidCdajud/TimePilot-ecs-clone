@@ -15,11 +15,19 @@ from ecs.components.player_orientation import PlayerOrientation
 from ecs.components.tags.c_tag_cloud import CTagCloud
 from ecs.components.bullet import Bullet
 from ecs.components.enemy_ai import EnemyAI
+
 from ecs.components.tags.c_tag_bullet import CTagBullet
 from ecs.components.tags.c_tag_enemy import CTagEnemy
 from ecs.components.tags.c_tag_player import CTagPlayer
+
 from ecs.components.orientation import Orientation
-from src.ecs.components.enemy_orientation import EnemyOrientation 
+from ecs.components.enemy_orientation import EnemyOrientation
+from ecs.components.health import Health 
+from ecs.components.duration import Duration    
+from ecs.components.sprite import Sprite
+from ecs.components.animation import Animation
+from ecs.components.transform import Transform
+
 
 # … resto de funciones …
 
@@ -155,9 +163,10 @@ def create_bullet(
     world.add_component(ent, CTagBullet())
     world.add_component(ent, Bullet(owner=None, damage=cfg.get("damage", 1)))
     # Animación si procede
+    world.add_component(ent, Duration(0.2))
+
     if len(frames) > 1:
         world.add_component(ent, Animation(frames, framerate=frate))
-
     return ent
 
 def create_enemy_plane(world: esper.World, cfg: dict) -> int:
@@ -207,5 +216,28 @@ def create_enemy_plane(world: esper.World, cfg: dict) -> int:
     # 7) Lógica de juego
     world.add_component(ent, CTagEnemy())
     world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed", 50.0)))
+    world.add_component(ent, Health(cfg.get("health", 1)))
 
+    # comps = [type(c).__name__ for c in world.components_for_entity(ent)]
+    # print(f"[DEBUG create_enemy_plane] ent={ent} → {comps}")
+    
+    return ent
+
+def create_explosion(world: esper.World, cfg: dict, pos: tuple[float, float]) -> int:
+    sheet = ServiceLocator.images_service.get(cfg["image"])
+    fw, fh   = cfg["frame_w"], cfg["frame_h"]
+    num      = cfg["frames"]
+    fr_rate  = cfg["framerate"]
+    frames   = _slice_sheet(sheet, fw, fh, num) or [sheet]
+
+    ent = world.create_entity()
+
+    world.add_component(ent, Transform((pos[0], pos[1])))
+
+    offset = (frames[0].get_width()//2, frames[0].get_height()//2)
+    world.add_component(ent, Sprite(frames[0], offset))
+    world.add_component(ent, Animation(frames, fr_rate))
+    # duración = total de segundos de la animación
+    total_time = len(frames) / fr_rate
+    world.add_component(ent, Duration(total_time))
     return ent

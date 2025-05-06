@@ -20,8 +20,8 @@ def sistema_enemy_ai(world: esper.World, delta: float) -> None:
     player_pos = pygame.Vector2(player_tr.pos)
 
     # 3) Debug: cuantos con AI hay
-    ai_ents = [e for e,_ in world.get_component(EnemyAI)]
-    print(f"[DEBUG AI] entidades con EnemyAI: {ai_ents}")
+    # ai_ents = [e for e,_ in world.get_component(EnemyAI)]
+    # print(f"[DEBUG AI] entidades con EnemyAI: {ai_ents}")
 
     # 4) Ajusta cada enemigo
     for ent, (tr, vel, ai) in world.get_components(Transform, Velocity, EnemyAI):
