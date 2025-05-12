@@ -1,13 +1,13 @@
 # src/ecs/systems/s_player_rotation.py
-
 import math
+import pygame
 import esper
 from ecs.components.velocity import Velocity
 from ecs.components.sprite import Sprite
 from ecs.components.player_orientation import PlayerOrientation
+from ecs.components.last_direction import LastDirection
 
-# Ajuste en grados para corregir el desfase de tu hoja de sprites
-ANGLE_OFFSET = -90  
+ANGLE_OFFSET = -90  # Corrección para alinear el sprite hacia arriba
 
 def sistema_player_rotation(world: esper.World) -> None:
     for ent, (vel, orient, sprite) in world.get_components(
@@ -16,17 +16,21 @@ def sistema_player_rotation(world: esper.World) -> None:
         vx, vy = vel.vx, vel.vy
 
         if vx == 0 and vy == 0:
-            idx = orient.neutral_index
+            # Si está quieto, toma la última dirección si existe
+            if world.has_component(ent, LastDirection):
+                last_vec = world.component_for_entity(ent, LastDirection).vec
+            else:
+                last_vec = pygame.Vector2(0, -1)  # Por defecto: arriba
         else:
-            # 1) Calcula el ángulo original
-            raw_angle = math.degrees(math.atan2(-vy, vx))  # 0° = derecha, 90° = arriba
+            # Movimiento actual
+            last_vec = pygame.Vector2(vx, vy).normalize()
+            if world.has_component(ent, LastDirection):
+                world.component_for_entity(ent, LastDirection).vec = last_vec
+            else:
+                world.add_component(ent, LastDirection(last_vec))
 
-            # 2) Aplica el offset para realinear el índice con tu sheet
-            angle = (raw_angle + ANGLE_OFFSET) % 360
-
-            # 3) Mapea 0–360° a 0–n_frames
-            n = len(orient.frames)
-            idx = int((angle / 360) * n) % n
-
-        # Asigna el frame correcto
+        # Calcula el ángulo con offset
+        raw_angle = math.degrees(math.atan2(-last_vec.y, last_vec.x))
+        angle = (raw_angle + ANGLE_OFFSET) % 360
+        idx = int((angle / 360) * len(orient.frames)) % len(orient.frames)
         sprite.surface = orient.frames[idx]
