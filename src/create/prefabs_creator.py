@@ -27,6 +27,7 @@ from ecs.components.enemy_orientation import EnemyOrientation
 from ecs.components.health import Health
 from ecs.components.duration import Duration
 from ecs.components.score_popup import ScorePopup
+from ecs.components.lives import Lives
 
 
 
@@ -82,6 +83,10 @@ def create_player_plane(world: esper.World, cfg: dict) -> int:
 
     # Guarda todos los frames para el sistema de orientación
     world.add_component(ent, PlayerOrientation(frames, neutral_index=neutral_idx))
+
+    world.add_component(ent, CTagPlayer())
+    world.add_component(ent, PlayerOrientation(frames, neutral_index=neutral_idx))
+    world.add_component(ent, Lives(cfg.get("lives", 3)))   # ➋ 3 vidas por defecto
 
     return ent
 

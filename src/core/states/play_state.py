@@ -16,8 +16,9 @@ from ecs.systems.s_enemy_ai import sistema_enemy_ai
 from ecs.systems.s_collision import sistema_colisiones_balas_enemigos
 from ecs.systems.s_enemy_orientation import sistema_enemy_orientation
 from ecs.systems.s_expiration import sistema_expiracion
-
-from core.states.pause_state import PauseState  # <─ importa aquí
+from ecs.systems.s_collision_player_enemy import sistema_colision_player_enemy
+from core.states.pause_state import PauseState 
+from ecs.systems.s_lives_render import sistema_lives_render
 
 class PlayState:
     def __init__(self, engine):
@@ -50,6 +51,7 @@ class PlayState:
         sistema_player_rotation(world)
         sistema_animacion(world, dt)
         sistema_colisiones_balas_enemigos(world)
+        sistema_colision_player_enemy(world)    
         sistema_expiracion(world, dt)
 
     def render(self):
@@ -60,6 +62,7 @@ class PlayState:
 
         self.screen.fill(self.engine.color_fondo)
         sistema_rendering(world, self.screen, camera_offset, center)
+        sistema_lives_render(world, self.screen)  
         pygame.display.flip()
 
 
