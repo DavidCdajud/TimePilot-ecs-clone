@@ -6,5 +6,6 @@
     "start_index": 0,
     "framerate": 12,
     "spawn": { "x": 112, "y": 128 },
-    "speed": 200
+    "speed": 200,
+    "lives": 3
 }
