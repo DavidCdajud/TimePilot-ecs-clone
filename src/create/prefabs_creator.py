@@ -253,14 +253,38 @@ def create_score_popup(world: esper.World, value: int, pos: tuple[float, float])
     return ent
 
 
-# ── create/prefabs_creator.py  (al final) ──────────────
-def create_boss_plane(world: esper.World, player_pos: pygame.Vector2) -> int:
-    cfg = {
-        "image" : "assets/img/boss_level_01.png",
-        "frame_w": 48, "frame_h": 48, "frames": 1,
-        "spawn": {"x": player_pos.x, "y": player_pos.y - 200},
-        "vel_min": 0, "vel_max": 0,
-        "health": 20,
-        "mode": "animation"
-    }
-    return create_enemy_plane(world, cfg)
+# ------------------------------------------------------------------
+def create_boss_plane(world: esper.World, cfg: dict, spawn_pos: tuple[float, float]) -> int:
+    """
+    Crea el jefe final:
+      • Sprite/animación a partir de un spritesheet
+      • Más vida que un enemigo normal
+      • Opcionalmente con EnemyAI para que persiga
+    """
+    # 1) Carga sheet y trocea
+    sheet = ServiceLocator.images_service.get(cfg["image"])
+    fw, fh   = cfg["frame_w"], cfg["frame_h"]
+    frames   = _slice_sheet(sheet, fw, fh, cfg.get("frames")) or [sheet]
+    fr_rate  = cfg.get("framerate", 6)
+
+    # 2) Entidad básica
+    ent = world.create_entity()
+    world.add_component(ent, Transform(spawn_pos))
+    world.add_component(ent, Velocity(0, 0))          # de entrada quieto
+
+    # 3) Sprite (primer frame) y animación
+    offset = (frames[0].get_width()//2, frames[0].get_height()//2)
+    world.add_component(ent, Sprite(frames[0], offset, layer=2))
+    if len(frames) > 1:
+        world.add_component(ent, Animation(frames, fr_rate))
+
+    # 4) Lógica de juego
+    world.add_component(ent, CTagEnemy())              # lo tratamos como enemigo
+    world.add_component(ent, Health(cfg.get("health", 20)))
+    # si quieres que persiga, añade EnemyAI
+    from ecs.components.enemy_ai import EnemyAI
+    if cfg.get("ai_speed"):                            # opcional
+        world.add_component(ent, EnemyAI(speed=cfg["ai_speed"]))
+
+    return ent
+# ------------------------------------------------------------------

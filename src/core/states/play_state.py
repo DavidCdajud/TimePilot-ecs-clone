@@ -19,6 +19,7 @@ from ecs.systems.s_collision        import sistema_colisiones_balas_enemigos
 from ecs.systems.s_collision_player_enemy import sistema_colision_player_enemy
 from ecs.systems.s_expiration       import sistema_expiracion
 from ecs.systems.s_lives_render     import sistema_lives_render
+from ecs.systems.s_score_render import sistema_score_render
 
 # ── Estados ────────────────────────────────────────────────────
 from core.states.pause_state     import PauseState
@@ -73,13 +74,20 @@ class PlayState:
         world = self.engine.mundo
         player_tr = world.component_for_entity(self.engine.player_ent, Transform)
         camera_offset = player_tr.pos
-        centre = self.engine.screen_center
+        center = self.engine.screen_center
 
         self.screen.fill(self.engine.color_fondo)
-        sistema_rendering(world, self.screen, camera_offset, centre)
-        sistema_lives_render(world, self.screen)
-        pygame.display.flip()
 
+        # mundo + sprites
+        sistema_rendering(world, self.screen, camera_offset, center)
+
+        # marcador de puntos  ▸▸▸  NUEVA LÍNEA
+        sistema_score_render(world, self.screen)
+
+        # iconos de vida
+        sistema_lives_render(world, self.screen)
+
+        pygame.display.flip()
     # -----------------------------------------------------------
     def exit(self):
         """Hook por si necesitas limpiar algo al salir del gameplay."""

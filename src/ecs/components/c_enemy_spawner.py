@@ -7,10 +7,11 @@ class CEnemySpawner:
     configs: list[dict]               # prefabs de enemigos normales
     interval: float                   # seg entre intentos de spawn
     screen_width: int
+    boss_cfg_path: str = "assets/cfg/boss.json" 
 
     timer:     float = 0.0            # acumulador interno
-    max_alive: int   = 30             # ← nuevo  (8-10 simultáneos)
-    kill_goal: int   = 10             # ← nuevo  (bajas para boss)
+    max_alive: int   = 2             # ← nuevo  (8-10 simultáneos)
+    kill_goal: int   = 2             # ← nuevo  (bajas para boss)
 
     total_killed: int = 0             # se incrementa desde s_collision
     boss_spawned: bool = False
