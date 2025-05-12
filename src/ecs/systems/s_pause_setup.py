@@ -23,7 +23,7 @@ def sistema_pause_setup(world: esper.World) -> None:
     # fuente única
     font = pygame.font.Font(_FONT_PATH, _FONT_SIZE)
 
-    options = ["PAUSA"]
+    options = ["RESUME", "QUIT"]
     start_y = h / 2 - (_LINE_SPACING * (len(options) - 1) / 2)
 
     for idx, text in enumerate(options):

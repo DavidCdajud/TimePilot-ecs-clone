@@ -1,6 +1,5 @@
 # src/ecs/systems/s_score_render.py
 import pygame, esper
-
 from typing import Optional               #  ←  NUEVO
 from ecs.components.score_board import ScoreBoard
 
@@ -30,4 +29,3 @@ def sistema_score_render(world: esper.World, screen: pygame.Surface) -> None:
     text = f"SCORE  {sb.score:,}".replace(",", ".")
     surf = font.render(text, True, _FONT_COLOR)
     screen.blit(surf, _POS)
-

@@ -42,13 +42,26 @@ class MenuState:
         self.blink_timer = 0.0
         self.show_deposit = True
 
+    def enter(self):
+        """Se llama al entrar en este estado de menú."""
+        # Aquí podrías resetear animaciones, timers, etc.
+        pass
+
+    def exit(self):
+        """Se llama al salir de este estado de menú."""
+        # Limpieza si fuera necesaria
+        pass
+
     def handle_events(self):
         for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                self.engine.activo = False
+
             if e.type == pygame.KEYDOWN and e.key == pygame.K_RETURN:
                 print("[MENU] ENTER pulsado, cambiando a PlayState")
-                ps = PlayState(self.engine)
-                ps.enter()
-                self.engine.state = ps
+                self.engine.push_state(PlayState(self.engine))
+                
+                return
 
     def update(self, dt: float):
         # Parpadeo del mensaje central
