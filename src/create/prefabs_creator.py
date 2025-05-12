@@ -209,9 +209,6 @@ def create_enemy_plane(world: esper.World, cfg: dict) -> int:
     world.add_component(ent, CTagEnemy())
     world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed", 50.0)))
     world.add_component(ent, Health(cfg.get("health", 1)))
-
-    # comps = [type(c).__name__ for c in world.components_for_entity(ent)]
-    # print(f"[DEBUG create_enemy_plane] ent={ent} → {comps}")
     
     return ent
 
@@ -254,3 +251,16 @@ def create_score_popup(world: esper.World, value: int, pos: tuple[float, float])
     world.add_component(ent, ScorePopup(value))
 
     return ent
+
+
+# ── create/prefabs_creator.py  (al final) ──────────────
+def create_boss_plane(world: esper.World, player_pos: pygame.Vector2) -> int:
+    cfg = {
+        "image" : "assets/img/boss_level_01.png",
+        "frame_w": 48, "frame_h": 48, "frames": 1,
+        "spawn": {"x": player_pos.x, "y": player_pos.y - 200},
+        "vel_min": 0, "vel_max": 0,
+        "health": 20,
+        "mode": "animation"
+    }
+    return create_enemy_plane(world, cfg)
