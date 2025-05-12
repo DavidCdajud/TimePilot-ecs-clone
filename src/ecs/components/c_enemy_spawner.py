@@ -1,17 +1,19 @@
-# src/ecs/components/c_enemy_spawner.py
-from dataclasses import dataclass
-from typing import List, Dict
+# ── src/ecs/components/c_enemy_spawner.py ─────────────
+from dataclasses import dataclass, field
+import random
 
 @dataclass
 class CEnemySpawner:
-    """
-    Spawner periódico de enemigos:
-      - configs: lista de dicts (de enemies.json)
-      - interval: cada cuántos segundos spawnear
-      - screen_width: ancho de la ventana para posicionar x aleatorio
-      - timer: cronómetro interno
-    """
-    configs: List[Dict]
-    interval: float
-    screen_width: float
-    timer: float = 0.0
+    configs: list[dict]               # prefabs de enemigos normales
+    interval: float                   # seg entre intentos de spawn
+    screen_width: int
+
+    timer:     float = 0.0            # acumulador interno
+    max_alive: int   = 30             # ← nuevo  (8-10 simultáneos)
+    kill_goal: int   = 10             # ← nuevo  (bajas para boss)
+
+    total_killed: int = 0             # se incrementa desde s_collision
+    boss_spawned: bool = False
+
+    # probabilidad de que un enemigo use EnemyAI (persiga)
+    chase_prob: float = 0.6           # 60 % persigue, 40 % patrulla
