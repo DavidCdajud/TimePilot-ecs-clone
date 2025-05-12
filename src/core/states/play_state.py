@@ -35,12 +35,10 @@ class PlayState:
             if ev.type == pygame.QUIT:
                 self.engine.activo = False
 
+
             elif ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE:
-                # Cambiamos a pausa
-                pausa = PauseState(self.engine)
-                pausa.enter()
-                self.engine.state = pausa
-                return
+                self.engine.push_state(PauseState(self.engine))  # ⬅️  empuja la pausa
+                return   
 
     def update(self, dt: float):
         world = self.engine.mundo
@@ -63,3 +61,17 @@ class PlayState:
         self.screen.fill(self.engine.color_fondo)
         sistema_rendering(world, self.screen, camera_offset, center)
         pygame.display.flip()
+
+
+    def exit(self):
+        """
+        Limpieza al abandonar el estado de juego.
+        Ahora mismo no necesitamos nada especial, pero
+        lo dejamos preparado por si en el futuro deseas:
+          • vaciar el mundo
+          • guardar puntuaciones
+          • detener música, etc.
+        """
+        pass
+
+    

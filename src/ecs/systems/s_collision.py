@@ -28,7 +28,6 @@ def sistema_colisiones_balas_enemigos(world: esper.World) -> None:
     • Lanza explosión + popup de puntuación.
     • Actualiza el marcador.
     """
-
     bullets  = list(world.get_components(CTagBullet, Transform, Sprite))
     enemies  = list(world.get_components(CTagEnemy,  Transform, Sprite, Health))
     tableros = list(world.get_component(ScoreBoard))
@@ -57,5 +56,4 @@ def sistema_colisiones_balas_enemigos(world: esper.World) -> None:
                 sb.score += PUNTOS_POR_ENEMIGO
 
             break  # salto al siguiente proyectil (la bala ya no existe)
-
 
