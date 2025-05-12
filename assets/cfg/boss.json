@@ -1,0 +1,9 @@
+{
+  "image":      "assets/img/boss_level_011.png",
+  "frame_w":    32,
+  "frame_h":    32,
+  "frames":     4,
+  "framerate":  6,
+  "health":     20,
+  "ai_speed":   30
+}

@@ -19,6 +19,7 @@ from ecs.systems.s_collision        import sistema_colisiones_balas_enemigos
 from ecs.systems.s_collision_player_enemy import sistema_colision_player_enemy
 from ecs.systems.s_expiration       import sistema_expiracion
 from ecs.systems.s_lives_render     import sistema_lives_render
+from ecs.systems.s_score_render     import sistema_score_render
 
 # ── Estados ────────────────────────────────────────────────────
 from core.states.pause_state     import PauseState
@@ -56,28 +57,45 @@ class PlayState:
         sistema_input_player(world, dt)
         sistema_movimiento(world, dt)
 
-        sistema_colision_player_enemy(world, self.engine)   # ← solo UNA vez
+        sistema_colision_player_enemy(world, self.engine)
 
         sistema_player_rotation(world)
         sistema_animacion(world, dt)
         sistema_colisiones_balas_enemigos(world)
         sistema_expiracion(world, dt)
 
-        # --- ¿Game-Over?  -------------------------------------
-        if not world.get_component(Lives):          # no queda el jugador
+        # --- ¿Game-Over? -------------------------------------
+        if not world.get_component(Lives):  # no queda jugador con vidas
             self.engine.push_state(GameOverState(self.engine))
             return
 
     # -----------------------------------------------------------
     def render(self):
         world = self.engine.mundo
-        player_tr = world.component_for_entity(self.engine.player_ent, Transform)
+
+        # Si el jugador fue eliminado, evitar KeyError
+        if not world.entity_exists(self.engine.player_ent):
+            return
+
+        try:
+            player_tr = world.component_for_entity(self.engine.player_ent, Transform)
+        except KeyError:
+            return
+
         camera_offset = player_tr.pos
-        centre = self.engine.screen_center
+        center = self.engine.screen_center
 
         self.screen.fill(self.engine.color_fondo)
-        sistema_rendering(world, self.screen, camera_offset, centre)
+
+        # mundo + sprites
+        sistema_rendering(world, self.screen, camera_offset, center)
+
+        # marcador de puntos
+        sistema_score_render(world, self.screen)
+
+        # iconos de vida
         sistema_lives_render(world, self.screen)
+
         pygame.display.flip()
 
     # -----------------------------------------------------------

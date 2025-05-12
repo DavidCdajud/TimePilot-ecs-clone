@@ -209,9 +209,6 @@ def create_enemy_plane(world: esper.World, cfg: dict) -> int:
     world.add_component(ent, CTagEnemy())
     world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed", 50.0)))
     world.add_component(ent, Health(cfg.get("health", 1)))
-
-    # comps = [type(c).__name__ for c in world.components_for_entity(ent)]
-    # print(f"[DEBUG create_enemy_plane] ent={ent} → {comps}")
     
     return ent
 
@@ -254,3 +251,40 @@ def create_score_popup(world: esper.World, value: int, pos: tuple[float, float])
     world.add_component(ent, ScorePopup(value))
 
     return ent
+
+
+# ------------------------------------------------------------------
+def create_boss_plane(world: esper.World, cfg: dict, spawn_pos: tuple[float, float]) -> int:
+    """
+    Crea el jefe final:
+      • Sprite/animación a partir de un spritesheet
+      • Más vida que un enemigo normal
+      • Opcionalmente con EnemyAI para que persiga
+    """
+    # 1) Carga sheet y trocea
+    sheet = ServiceLocator.images_service.get(cfg["image"])
+    fw, fh   = cfg["frame_w"], cfg["frame_h"]
+    frames   = _slice_sheet(sheet, fw, fh, cfg.get("frames")) or [sheet]
+    fr_rate  = cfg.get("framerate", 6)
+
+    # 2) Entidad básica
+    ent = world.create_entity()
+    world.add_component(ent, Transform(spawn_pos))
+    world.add_component(ent, Velocity(0, 0))          # de entrada quieto
+
+    # 3) Sprite (primer frame) y animación
+    offset = (frames[0].get_width()//2, frames[0].get_height()//2)
+    world.add_component(ent, Sprite(frames[0], offset, layer=2))
+    if len(frames) > 1:
+        world.add_component(ent, Animation(frames, fr_rate))
+
+    # 4) Lógica de juego
+    world.add_component(ent, CTagEnemy())              # lo tratamos como enemigo
+    world.add_component(ent, Health(cfg.get("health", 20)))
+    # si quieres que persiga, añade EnemyAI
+    from ecs.components.enemy_ai import EnemyAI
+    if cfg.get("ai_speed"):                            # opcional
+        world.add_component(ent, EnemyAI(speed=cfg["ai_speed"]))
+
+    return ent
+# ------------------------------------------------------------------
