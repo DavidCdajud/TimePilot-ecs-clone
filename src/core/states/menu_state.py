@@ -4,6 +4,7 @@ import pygame
 from pygame import Color
 from core.service_locator import ServiceLocator
 from core.states.play_state import PlayState
+from core.service_locator import ServiceLocator as SL
 
 class MenuState:
     def __init__(self, engine):
@@ -44,12 +45,12 @@ class MenuState:
 
     def enter(self):
         """Se llama al entrar en este estado de menú."""
-        # Aquí podrías resetear animaciones, timers, etc.
+        SL.sound_service.play_bgm("assets/snd/bgm.ogg", volume=0.2)
         pass
 
     def exit(self):
         """Se llama al salir de este estado de menú."""
-        # Limpieza si fuera necesaria
+        SL.sound_service.stop_bgm()
         pass
 
     def handle_events(self):

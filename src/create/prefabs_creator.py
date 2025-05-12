@@ -28,6 +28,8 @@ from ecs.components.health import Health
 from ecs.components.duration import Duration
 from ecs.components.score_popup import ScorePopup
 from ecs.components.lives import Lives
+from ecs.components.enemy_ai import EnemyAI
+from core.service_locator import ServiceLocator as SL
 
 
 
@@ -213,6 +215,7 @@ def create_enemy_plane(world: esper.World, cfg: dict) -> int:
     return ent
 
 def create_explosion(world: esper.World, cfg: dict, pos: tuple[float, float]) -> int:
+    SL.sound_service.play_sfx("assets/snd/player_die.ogg")
     sheet  = ServiceLocator.images_service.get(cfg["image"])
     fw, fh = cfg["frame_w"], cfg["frame_h"]
     frames = _slice_sheet(sheet, fw, fh, cfg["frames"]) or [sheet]
@@ -282,7 +285,7 @@ def create_boss_plane(world: esper.World, cfg: dict, spawn_pos: tuple[float, flo
     world.add_component(ent, CTagEnemy())              # lo tratamos como enemigo
     world.add_component(ent, Health(cfg.get("health", 20)))
     # si quieres que persiga, añade EnemyAI
-    from ecs.components.enemy_ai import EnemyAI
+
     if cfg.get("ai_speed"):                            # opcional
         world.add_component(ent, EnemyAI(speed=cfg["ai_speed"]))
 
