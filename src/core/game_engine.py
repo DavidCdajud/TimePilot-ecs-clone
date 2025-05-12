@@ -25,9 +25,10 @@ from create.prefabs_creator import (
 from ecs.components.c_enemy_spawner import CEnemySpawner
 from ecs.systems.s_player_rotation import sistema_player_rotation
 from ecs.systems.s_player_shoot import sistema_player_shoot
-
+from core.service_locator import ServiceLocator
 # ── States ──────────────────────────────────────────────────────
 from core.states.menu_state import MenuState
+
 
 
 class GameEngine:
@@ -40,6 +41,11 @@ class GameEngine:
         # Ventana
         w = self.window_cfg["size"]["w"]
         h = self.window_cfg["size"]["h"]
+        # dentro de __init__(self)
+
+        self._font_arcade_big   = ServiceLocator.texts_service.get("assets/fnt/PressStart2P.ttf", 16)
+        self._font_arcade_small = ServiceLocator.texts_service.get("assets/fnt/PressStart2P.ttf", 8)
+
         title = self.window_cfg.get("title", "SPACE AVIATOR")
         pygame.display.set_caption(title)
         self.pantalla = pygame.display.set_mode((w, h))
@@ -60,6 +66,7 @@ class GameEngine:
         # Mundo y jugador
         self.mundo: esper.World | None = None
         self.player_ent: int | None = None
+
 
         # Config de bala
         with open("assets/cfg/bullet.json", encoding="utf-8") as f:

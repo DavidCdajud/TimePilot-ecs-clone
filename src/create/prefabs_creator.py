@@ -55,15 +55,7 @@ def _center_offset(surf: pygame.Surface) -> Tuple[int, int]:
 
 
 def create_player_plane(world: esper.World, cfg: dict) -> int:
-    """
-    Crea la nave del jugador:
-      - Transform, Velocity
-      - PlayerInput (define la velocidad)
-      - Sprite (frame neutral)
-      - PlayerOrientation (todos los frames para orientar según vx,vy)
-    """
-    # después
-    sheet = ServiceLocator.images_service.get(cfg["image"])
+    sheet  = ServiceLocator.images_service.get(cfg["image"])
     frames = _slice_sheet(sheet, cfg["frame_w"], cfg["frame_h"], cfg.get("frames"))
     neutral_idx = cfg.get("start_index", 0)
 
@@ -72,23 +64,16 @@ def create_player_plane(world: esper.World, cfg: dict) -> int:
     world.add_component(ent, Velocity(0.0, 0.0))
     world.add_component(ent, PlayerInput(cfg["speed"]))
 
-    # Frame inicial (neutral) y offset centrado
-    first_frame = frames[neutral_idx]
-    offset = _center_offset(first_frame)
-    world.add_component(ent, Sprite(first_frame, offset, layer=3))
-    
-    # Marca esta entidad como “jugador”
-    world.add_component(ent, CTagPlayer())
-
-
-    # Guarda todos los frames para el sistema de orientación
-    world.add_component(ent, PlayerOrientation(frames, neutral_index=neutral_idx))
+    surf   = frames[neutral_idx]
+    offset = _center_offset(surf)
+    world.add_component(ent, Sprite(surf, offset, layer=3))
 
     world.add_component(ent, CTagPlayer())
     world.add_component(ent, PlayerOrientation(frames, neutral_index=neutral_idx))
-    world.add_component(ent, Lives(cfg.get("lives", 3)))   # ➋ 3 vidas por defecto
+    world.add_component(ent, Lives(cfg.get("lives", 3)))   # ← vidas
 
     return ent
+
 
 
 def create_cloud(world: esper.World, cfg: dict) -> int:
