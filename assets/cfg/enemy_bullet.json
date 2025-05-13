@@ -1,0 +1,9 @@
+{
+  "image": "assets/img/asteroid_02.png",
+  "speed": 260,
+  "frame_w": 8,
+  "frame_h": 8,
+  "frames": 1,
+  "framerate": 0,
+  "damage": 1
+}

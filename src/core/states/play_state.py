@@ -20,10 +20,12 @@ from ecs.systems.s_collision_player_enemy import sistema_colision_player_enemy
 from ecs.systems.s_expiration       import sistema_expiracion
 from ecs.systems.s_lives_render     import sistema_lives_render
 from ecs.systems.s_score_render     import sistema_score_render
+from ecs.systems.s_enemy_bullet_collision import sistema_enemy_bullet_collision
 
 # ── Estados ────────────────────────────────────────────────────
 from core.states.pause_state     import PauseState
 from core.states.game_over_state import GameOverState
+from ecs.systems.s_enemy_shot import sistema_enemy_shoot
 
 class PlayState:
     def __init__(self, engine):
@@ -53,7 +55,8 @@ class PlayState:
         sistema_enemy_spawn(world, dt)
         sistema_enemy_ai(world, dt)
         sistema_enemy_orientation(world)
-
+        sistema_enemy_shoot(world, dt)
+        sistema_enemy_bullet_collision(world, self.engine)
         sistema_input_player(world, dt)
         sistema_movimiento(world, dt)
 
