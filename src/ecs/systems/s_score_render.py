@@ -26,6 +26,6 @@ def sistema_score_render(world: esper.World, screen: pygame.Surface) -> None:
     _, sb = comps[0]
     font = _get_font()
 
-    text = f"SCORE  {sb.score:,}".replace(",", ".")
+    text = f"SCORE:  {sb.score:,}".replace(",", ".")
     surf = font.render(text, True, _FONT_COLOR)
     screen.blit(surf, _POS)

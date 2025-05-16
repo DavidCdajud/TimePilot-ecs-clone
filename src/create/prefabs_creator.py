@@ -28,9 +28,12 @@ from ecs.components.health import Health
 from ecs.components.duration import Duration
 from ecs.components.score_popup import ScorePopup
 from ecs.components.lives import Lives
-
-
-
+from ecs.components.enemy_ai import EnemyAI
+from core.service_locator import ServiceLocator as SL
+from ecs.components.tags.c_tag_enemy_bullet import CTagEnemyBullet
+from ecs.components.enemy_shooter import EnemyShooter
+from ecs.components.boss_shooter import BossShooter
+from ecs.components.tags.c_tag_boss import CTagBoss
 
 _POPUP_FONT_PATH = "assets/fnt/PressStart2P.ttf"
 _POPUP_FONT_SIZE = 6
@@ -162,57 +165,50 @@ def create_bullet(
     return ent
 
 def create_enemy_plane(world: esper.World, cfg: dict) -> int:
-    """
-    Modo 'animation': ciclo normal de sprites.
-    Modo 'orientation': rota sprite según dirección.
-    cfg también admite 'orientation_frames'.
-    """
-    # 1) Carga sheet y frames base
-    sheet = ServiceLocator.images_service.get(cfg["image"])
-    fw = cfg.get("frame_w", sheet.get_width())
-    fh = cfg.get("frame_h", sheet.get_height())
-    base_frames = _slice_sheet(sheet, fw, fh, cfg.get("frames")) or [sheet]
-    start = cfg.get("start_index", 0) % len(base_frames)
+    sheet = SL.images_service.get(cfg["image"])
+    fw, fh = cfg.get("frame_w"), cfg.get("frame_h")
+    base   = _slice_sheet(sheet, fw, fh, cfg.get("frames"))
+    start  = cfg.get("start_index", 0) % len(base)
 
-    # 2) Velocidad
-    vmin, vmax = cfg.get("vel_min", 10), cfg.get("vel_max", 20)
-    vx = random.uniform(vmin, vmax) * random.choice([-1, 1])
-    vy = random.uniform(vmin, vmax) * random.choice([-1, 1])
+    vx = random.uniform(cfg.get("vel_min", 10), cfg.get("vel_max", 20)) \
+         * random.choice([-1, 1])
+    vy = random.uniform(cfg.get("vel_min", 10), cfg.get("vel_max", 20)) \
+         * random.choice([-1, 1])
 
-    # 3) Spawn
-    spawn = cfg.get("spawn", {"x":0,"y":0})
-    sx, sy = spawn["x"], spawn["y"]
-
-    # 4) Entidad
     ent = world.create_entity()
+    sx, sy = cfg.get("spawn", {"x": 0, "y": 0}).values()
     world.add_component(ent, Transform((sx, sy)))
     world.add_component(ent, Velocity(vx, vy))
 
-    # 5) Offset
-    surface = base_frames[start]
-    offset = (surface.get_width()//2, surface.get_height()//2)
-
-    # 6) Sprite/animación u orientación
     mode = cfg.get("mode", "orientation")
     if mode == "animation":
-        world.add_component(ent, Sprite(surface, offset, layer=2))
-        if len(base_frames) > 1:
-            world.add_component(ent, Animation(base_frames, cfg.get("framerate", 8)))
+        world.add_component(ent,
+            Sprite(base[start], _center_offset(base[start]), layer=2)
+        )
+        if len(base) > 1:
+            world.add_component(ent, Animation(base, cfg.get("framerate", 8)))
     else:
-        nori = cfg.get("orientation_frames", len(base_frames))
-        ori_frames = _slice_sheet(sheet, fw, fh, nori) or [surface]
-        neutral = start % len(ori_frames)
-        world.add_component(ent, Sprite(ori_frames[neutral], offset, layer=2))
-        world.add_component(ent, EnemyOrientation(ori_frames, neutral_index=neutral))
+        nori = cfg.get("orientation_frames", len(base))
+        ori  = _slice_sheet(sheet, fw, fh, nori)
+        neutral = start % len(ori)
+        world.add_component(ent,
+            Sprite(ori[neutral], _center_offset(ori[neutral]), layer=2)
+        )
+        world.add_component(ent, EnemyOrientation(ori, neutral_index=neutral))
 
-    # 7) Lógica de juego
     world.add_component(ent, CTagEnemy())
-    world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed", 50.0)))
     world.add_component(ent, Health(cfg.get("health", 1)))
-    
+    world.add_component(ent, EnemyAI(speed=cfg.get("ai_speed", 50.0)))
+
+    shoot_cfg = cfg.get("shooter", {})
+    world.add_component(ent,
+        EnemyShooter(cooldown=shoot_cfg.get("cooldown", 1.2),
+                     fire_prob=shoot_cfg.get("fire_prob", .30))
+    )
     return ent
 
 def create_explosion(world: esper.World, cfg: dict, pos: tuple[float, float]) -> int:
+    SL.sound_service.play_sfx("assets/snd/player_die.ogg")
     sheet  = ServiceLocator.images_service.get(cfg["image"])
     fw, fh = cfg["frame_w"], cfg["frame_h"]
     frames = _slice_sheet(sheet, fw, fh, cfg["frames"]) or [sheet]
@@ -279,12 +275,30 @@ def create_boss_plane(world: esper.World, cfg: dict, spawn_pos: tuple[float, flo
         world.add_component(ent, Animation(frames, fr_rate))
 
     # 4) Lógica de juego
-    world.add_component(ent, CTagEnemy())              # lo tratamos como enemigo
+    world.add_component(ent, CTagEnemy())
+    world.add_component(ent, CTagBoss())        
     world.add_component(ent, Health(cfg.get("health", 20)))
     # si quieres que persiga, añade EnemyAI
-    from ecs.components.enemy_ai import EnemyAI
+
     if cfg.get("ai_speed"):                            # opcional
         world.add_component(ent, EnemyAI(speed=cfg["ai_speed"]))
 
+
+
+    cd   = cfg.get("shoot_cooldown", 1.0)   # 1 s por defecto
+    p    = cfg.get("shoot_prob",    0.40)   # 40 %
+    world.add_component(ent, BossShooter(cooldown=cd, fire_prob=p))
     return ent
 # ------------------------------------------------------------------
+
+# ── src/create/prefabs_creator.py  (añade al final del archivo)
+
+
+def create_enemy_bullet(world, cfg, start_pos, direction):
+    ent = create_bullet(world, cfg, start_pos, direction)
+    world.remove_component(ent, CTagBullet)
+    world.add_component(ent, CTagEnemyBullet())
+    # sonido SÓLO cuando se crea la bala
+    SL.sound_service.play_sfx("assets/snd/enemy_shoot.wav", volume=.7)
+    return ent
+

@@ -1,43 +1,42 @@
 # src/ecs/systems/s_input_player.py
-import json
-import pygame
-import esper
-from ecs.components.velocity import Velocity
-from ecs.components.player_input import PlayerInput
-from ecs.components.transform import Transform
-from ecs.components.last_direction import LastDirection
-from create.prefabs_creator import create_bullet
+import json, pygame, esper
+from core.service_locator import ServiceLocator as SL
+from ecs.components.velocity      import Velocity
+from ecs.components.player_input  import PlayerInput
+from ecs.components.transform     import Transform
+from create.prefabs_creator       import create_bullet
 
-# Carga la configuración de la bala
 with open("assets/cfg/bullet.json", encoding="utf-8") as _f:
     BULLET_CFG = json.load(_f)
 
-def sistema_input_player(world: esper.World, delta: float) -> None:
+def sistema_input_player(world: esper.World, dt: float) -> None:
     keys = pygame.key.get_pressed()
+
     for ent, (vel, pi) in world.get_components(Velocity, PlayerInput):
+        # ── Movimiento ───────────────────────────────────────────
         vx = vy = 0.0
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]:   vx -= pi.speed
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:  vx += pi.speed
-        if keys[pygame.K_UP] or keys[pygame.K_w]:     vy -= pi.speed
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]:   vy += pi.speed
+        if keys[pygame.K_LEFT]  or keys[pygame.K_a]: vx -= pi.speed
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: vx += pi.speed
+        if keys[pygame.K_UP]    or keys[pygame.K_w]: vy -= pi.speed
+        if keys[pygame.K_DOWN]  or keys[pygame.K_s]: vy += pi.speed
         vel.vx, vel.vy = vx, vy
 
-        # Registra la última dirección válida si hay movimiento
-        if vx != 0 or vy != 0:
-            last_vec = pygame.Vector2(vx, vy).normalize()
-            if world.has_component(ent, LastDirection):
-                world.component_for_entity(ent, LastDirection).vec = last_vec
-            else:
-                world.add_component(ent, LastDirection(last_vec))
+        move_vec = pygame.Vector2(vx, vy)
+        if move_vec.length_squared():               # solo si se mueve
+            pi.last_dir = move_vec.normalize()
 
-        # Disparo con cooldown
-        pi.time_since_last_shot += delta
-        if (keys[pygame.K_z] or keys[pygame.K_SPACE]) and pi.time_since_last_shot >= pi.fire_cooldown:
+        # ── Disparo con cooldown ────────────────────────────────
+        pi.time_since_last_shot += dt
+        shooting = keys[pygame.K_z] or keys[pygame.K_SPACE]
+
+        if shooting and pi.time_since_last_shot >= pi.fire_cooldown:
             pi.time_since_last_shot = 0.0
+
+            # dirección de la bala:
+            fire_dir = move_vec.normalize() if move_vec.length_squared() else pi.last_dir
+
             tr = world.component_for_entity(ent, Transform)
-            dir_vec = pygame.Vector2(vx, vy)
-            if dir_vec.length_squared() == 0:
-                dir_vec = pygame.Vector2(0, -1)
-            else:
-                dir_vec = dir_vec.normalize()
-            create_bullet(world, BULLET_CFG, tr.pos, dir_vec)
+            create_bullet(world, BULLET_CFG, tr.pos, fire_dir)
+
+            # ▶ sonido de disparo
+            SL.sound_service.play_sfx("assets/snd/player_shoot.ogg", volume=0.8)

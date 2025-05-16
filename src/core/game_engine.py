@@ -15,6 +15,7 @@ from ecs.systems.s_input_player import sistema_input_player
 from ecs.components.cloud_spawner import CloudSpawner
 from ecs.systems.s_cloud_spawner import sistema_spawner_nubes
 from ecs.components.score_board import ScoreBoard
+from ecs.components.enemy_counter import EnemyCounter
 
 # ── Prefabs ─────────────────────────────────────────────────────
 from create.prefabs_creator import (
@@ -157,7 +158,7 @@ class GameEngine:
         enemy_spawner_ent = self.mundo.create_entity()
         self.mundo.add_component(
             enemy_spawner_ent,
-            CEnemySpawner(configs=enemies_cfg, interval=0.5, screen_width=screen_w)
+            CEnemySpawner(configs=enemies_cfg, interval=0.5, screen_width=screen_w,chase_prob   = 0.4)
         )
 
         # 5) Enemigo de prueba inmediato
@@ -167,7 +168,10 @@ class GameEngine:
 
         # 6) ScoreBoard
         sb_ent = self.mundo.create_entity()
+        cnt_ent = self.mundo.create_entity()
+        self.mundo.add_component(cnt_ent, EnemyCounter())  
         self.mundo.add_component(sb_ent, ScoreBoard())
+
 
     # ─────────────── Carga de configuración ───────────────
     def _cargar_json_window(self) -> None:
