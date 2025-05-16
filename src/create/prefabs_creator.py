@@ -33,7 +33,7 @@ from core.service_locator import ServiceLocator as SL
 from ecs.components.tags.c_tag_enemy_bullet import CTagEnemyBullet
 from ecs.components.enemy_shooter import EnemyShooter
 from ecs.components.boss_shooter import BossShooter
-
+from ecs.components.tags.c_tag_boss import CTagBoss
 
 _POPUP_FONT_PATH = "assets/fnt/PressStart2P.ttf"
 _POPUP_FONT_SIZE = 6
@@ -275,7 +275,8 @@ def create_boss_plane(world: esper.World, cfg: dict, spawn_pos: tuple[float, flo
         world.add_component(ent, Animation(frames, fr_rate))
 
     # 4) Lógica de juego
-    world.add_component(ent, CTagEnemy())              # lo tratamos como enemigo
+    world.add_component(ent, CTagEnemy())
+    world.add_component(ent, CTagBoss())        
     world.add_component(ent, Health(cfg.get("health", 20)))
     # si quieres que persiga, añade EnemyAI
 

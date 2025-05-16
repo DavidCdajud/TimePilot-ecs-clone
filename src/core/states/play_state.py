@@ -67,7 +67,7 @@ class PlayState:
 
         sistema_player_rotation(world)
         sistema_animacion(world, dt)
-        sistema_colisiones_balas_enemigos(world)
+        sistema_colisiones_balas_enemigos(world, self.engine)
         sistema_expiracion(world, dt)
 
         # --- ¿Game-Over? -------------------------------------
