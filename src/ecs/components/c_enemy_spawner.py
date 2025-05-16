@@ -10,7 +10,7 @@ class CEnemySpawner:
     boss_cfg_path: str = "assets/cfg/boss.json" 
 
     timer:     float = 0.0            # acumulador interno
-    max_alive: int   = 10             # ← nuevo  (8-10 simultáneos)
+    max_alive: int   = 15             # ← nuevo  (8-10 simultáneos)
     kill_goal: int   = 5             # ← nuevo  (bajas para boss)
 
     total_killed: int = 0             # se incrementa desde s_collision
