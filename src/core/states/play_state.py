@@ -27,6 +27,7 @@ from ecs.systems.s_boss_shoot import sistema_boss_shoot
 from core.states.pause_state     import PauseState
 from core.states.game_over_state import GameOverState
 from ecs.systems.s_enemy_shot import sistema_enemy_shoot
+from ecs.systems.s_kill_render import sistema_kill_render
 
 class PlayState:
     def __init__(self, engine):
@@ -97,6 +98,9 @@ class PlayState:
 
         # marcador de puntos
         sistema_score_render(world, self.screen)
+
+        sistema_kill_render(world, self.screen)
+
 
         # iconos de vida
         sistema_lives_render(world, self.screen)
