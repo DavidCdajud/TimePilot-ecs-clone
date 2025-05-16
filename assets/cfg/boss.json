@@ -5,5 +5,10 @@
   "frames":     4,
   "framerate":  6,
   "health":     20,
-  "ai_speed":   30
+  "ai_speed":   30,
+  "shoot_cooldown": 1.0,
+  "shoot_prob":     0.40,
+  "spread_count":   5, 
+  "spread_angle":   35,   
+  "bullet_speed":   280  
 }

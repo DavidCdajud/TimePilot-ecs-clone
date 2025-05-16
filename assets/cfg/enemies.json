@@ -11,7 +11,8 @@
     "mode": "orientation",          
     "orientation_frames": 8,         
     "spawn": { "x": 100, "y": -16 },
-    "health": 1
+    "health": 1,
+    "shooter": { "cooldown": 1.0, "fire_prob": 0.2 }
   },
   {
     "type": "fighter",
@@ -24,7 +25,9 @@
     "vel_max": 40,
     "health": 1,
     "mode": "orientation",
-    "orientation_frames": 10
+    "orientation_frames": 10,
+    "shooter": { "cooldown": 4.0, "fire_prob": 1 }
+    
   },
   {
     "type": "bomber",
@@ -37,7 +40,8 @@
     "vel_max": 25,
     "health": 2,
     "mode": "orientation",
-    "orientation_frames": 10
+    "orientation_frames": 10,
+    "shooter": { "cooldown": 0.9, "fire_prob": 0.2 }
   },
   {
     "type": "ufo",
@@ -50,6 +54,7 @@
     "vel_max": 80,
     "health": 3,
     "mode": "orientation",
-    "orientation_frames": 10
+    "orientation_frames": 10,
+    "shooter": { "cooldown": 1.3, "fire_prob": 0.2 }
   }
 ]

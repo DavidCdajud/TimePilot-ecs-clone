@@ -157,7 +157,7 @@ class GameEngine:
         enemy_spawner_ent = self.mundo.create_entity()
         self.mundo.add_component(
             enemy_spawner_ent,
-            CEnemySpawner(configs=enemies_cfg, interval=0.5, screen_width=screen_w)
+            CEnemySpawner(configs=enemies_cfg, interval=0.5, screen_width=screen_w,chase_prob   = 0.4)
         )
 
         # 5) Enemigo de prueba inmediato
